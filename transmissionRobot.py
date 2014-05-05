@@ -27,7 +27,7 @@ class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
     def __init__(self, my_jid, settings):
         version_provider = VersionProvider(settings)
         self.client = Client(my_jid, [self, version_provider], settings)
-        self.rpc=transmissionrpc.Client('localhost',7002,TRANSUSER,TRANSPASS)
+        self.rpc=transmissionrpc.Client(TRANSURL,TRANSPORT,TRANSUSER,TRANSPASS)
         
     def run(self):
         """Request client connection and start the main loop."""
