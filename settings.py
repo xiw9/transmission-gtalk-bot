@@ -11,7 +11,7 @@ PASS = ''
 TRACE = True
 
 STATUS = u"Transmission on cloud.xiw.im"
-ADMIN = 'wandsea@gmail.com'
+SUBSCRIBERS = ['wandsea@gmail.com',]
 
 TRANSURL='localhost'
 TRANSPORT=7002

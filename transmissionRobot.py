@@ -18,7 +18,7 @@ from pyxmpp2.interfaces import presence_stanza_handler, message_stanza_handler
 from pyxmpp2.ext.version import VersionProvider
 from pyxmpp2.mainloop.interfaces import TimeoutHandler,timeout_handler
 
-from settings import USER, PASS, STATUS, TRACE, ADMIN, TRANSURL, TRANSPORT, TRANSUSER, TRANSPASS
+from settings import *
 __version__ = '0.1'
 
 class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
@@ -28,6 +28,8 @@ class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
         version_provider = VersionProvider(settings)
         self.client = Client(my_jid, [self, version_provider], settings)
         self.rpc=transmissionrpc.Client(TRANSURL,TRANSPORT,TRANSUSER,TRANSPASS)
+        for user in SUBSCRIBERS:
+            self.userlist[JID(user).local]=JID(user)
         
     def run(self):
         """Request client connection and start the main loop."""
@@ -70,24 +72,26 @@ class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
 
     @message_stanza_handler()
     def handle_message(self, stanza):
+        messagebody='Robot connected.'
         if stanza.body=="connect":
-            try:
-                self.userlist[stanza.from_jid.local]=stanza;
-            except:
-                pass
+            if not stanza.from_jid.local in self.userlist:
+                self.userlist[stanza.from_jid.local]=stanza.from_jid;
+            else:
+                messagebody="Already connected."
             msg = Message(stanza_type = stanza.stanza_type,
-                        from_jid = stanza.to_jid, to_jid = stanza.from_jid,
-                        subject = None, body = "Robot connected.",
+                        from_jid = self.client.jid, to_jid = stanza.from_jid,
+                        subject = None, body = messagebody,
                         thread = stanza.thread)
             return msg
         elif stanza.body=="disconnect":
+            messagebody="Robot disconnected."
             try:
                 del self.userlist[stanza.from_jid.local];
             except:
-                pass
+                messagebody="Already disconnected"
             msg = Message(stanza_type = stanza.stanza_type,
-                        from_jid = stanza.to_jid, to_jid = stanza.from_jid,
-                        subject = None, body = "Robot disconnected.",
+                        from_jid = self.client.jid, to_jid = stanza.from_jid,
+                        subject = None, body = messagebody,
                         thread = stanza.thread)
             return msg
         
@@ -114,12 +118,11 @@ class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
                 messagebody="Torrent finished: "+ torrent.name + ". https://cloud.xiw.im/index.php/apps/files?dir=/Transmission"
                 print messagebody
                 for i in self.userlist:
-                    stanza=self.userlist[i]
-                    msg = Message(stanza_type = stanza.stanza_type,
-                        from_jid = stanza.to_jid, to_jid = stanza.from_jid,
+                    msg = Message(stanza_type = "normal",
+                        from_jid = self.client.jid, to_jid = self.userlist[i],
                         subject = None, body = messagebody,
-                        thread = stanza.thread)
-                self.client.send(msg)
+                        thread = None)
+                    self.client.send(msg)
             elif torrent.doneDate<=0 and not torrent.hashString in self.lastcycle:
                 self.lastcycle[torrent.hashString]=1
         return 3
