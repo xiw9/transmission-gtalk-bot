@@ -8,7 +8,7 @@ sys.setdefaultencoding('utf-8')
 USER = 'xiwbot@gmail.com'
 PASS = ''
 
-TRACE = True
+TRACE = False
 
 STATUS = u"Transmission on cloud.xiw.im"
 SUBSCRIBERS = ['wandsea@gmail.com',]

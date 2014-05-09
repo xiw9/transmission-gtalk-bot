@@ -95,6 +95,18 @@ class transmissionRobot(EventHandler, XMPPFeatureHandler, TimeoutHandler):
                         thread = stanza.thread)
             return msg
         
+        if stanza.from_jid.local+'@'+stanza.from_jid.domain in SUBSCRIBERS:
+            try:
+                #print stanza.body
+                torrent=self.rpc.add_torrent(stanza.body,timeout=10)
+            except:
+                return True
+            messagebody="Torrent added: "+str(torrent)
+            msg = Message(stanza_type = stanza.stanza_type,
+                        from_jid = self.client.jid, to_jid = stanza.from_jid,
+                        subject = None, body = messagebody,
+                        thread = stanza.thread)
+            return msg
         return True
 
     @event_handler(DisconnectedEvent)
